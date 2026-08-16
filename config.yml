@@ -1,0 +1,17 @@
+app:
+  name: restaurant-management
+server:
+  host: localhost
+  port: 3000
+database:
+  driver: postgres
+  host: localhost
+  port: 5432
+  username: postgres
+  password: postgres
+  name: restaurant_management
+  sslmode: disable
+  pool:
+    idle: 10
+    max: 100
+    lifetime: 300

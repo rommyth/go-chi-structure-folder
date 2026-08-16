@@ -1,0 +1,57 @@
+package main
+
+import (
+	"fmt"
+	"log/slog"
+	"net/http"
+	"restaurant-management/internal/modules/health"
+
+	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/spf13/viper"
+)
+
+type App struct {
+	config   *viper.Viper
+	db       *pgxpool.Pool
+	log      *slog.Logger
+	validate *validator.Validate
+}
+
+func NewApp(
+	config *viper.Viper,
+	log *slog.Logger,
+	validate *validator.Validate,
+	db *pgxpool.Pool,
+) *App {
+	return &App{
+		config:   config,
+		log:      log,
+		validate: validate,
+		db:       db,
+	}
+}
+
+func (a *App) AmountHandler() http.Handler {
+	healthHandler := health.NewHandler()
+
+	routesConfig := Routes{
+		healthHandler: healthHandler,
+	}
+
+	return routesConfig.LoadRoutes()
+
+}
+
+func (a *App) Start() error {
+	server := &http.Server{
+		Addr:    fmt.Sprintf(":%s", a.config.GetString("server.port")),
+		Handler: a.AmountHandler(),
+	}
+
+	if err := server.ListenAndServe(); err != nil {
+		return fmt.Errorf("failed to start server: %w \n", err)
+	}
+
+	return nil
+}
