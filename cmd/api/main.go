@@ -16,11 +16,12 @@ func main() {
 		log.Error("failed to initialize database", "error", err)
 		os.Exit(1)
 	}
+	jwt := config.NewJWT(viperConfig)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	app := NewApp(viperConfig, log, validate, db)
+	app := NewApp(viperConfig, log, validate, db, jwt)
 	if err := app.Start(ctx); err != nil {
 		log.Error(
 			"application stopped",

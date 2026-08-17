@@ -15,3 +15,5 @@ database:
     idle: 10
     max: 100
     lifetime: 300
+jwt:
+  secret: your-super-secret-key

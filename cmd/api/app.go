@@ -8,6 +8,7 @@ import (
 	"restaurant-management/internal/modules/health"
 	"time"
 
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/spf13/viper"
@@ -18,6 +19,7 @@ type App struct {
 	db       *pgxpool.Pool
 	log      *slog.Logger
 	validate *validator.Validate
+	jwt      *jwtauth.JWTAuth
 }
 
 func NewApp(
@@ -25,12 +27,14 @@ func NewApp(
 	log *slog.Logger,
 	validate *validator.Validate,
 	db *pgxpool.Pool,
+	jwt *jwtauth.JWTAuth,
 ) *App {
 	return &App{
 		config:   config,
 		log:      log,
 		validate: validate,
 		db:       db,
+		jwt:      jwt,
 	}
 }
 
@@ -38,6 +42,7 @@ func (a *App) AmountHandler() http.Handler {
 	healthHandler := health.NewHandler()
 
 	routesConfig := Routes{
+		jwt:           a.jwt,
 		healthHandler: healthHandler,
 	}
 
