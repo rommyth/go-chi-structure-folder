@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"restaurant-management/internal/modules/health"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -43,15 +45,30 @@ func (a *App) AmountHandler() http.Handler {
 
 }
 
-func (a *App) Start() error {
+func (a *App) Start(ctx context.Context) error {
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%s", a.config.GetString("server.port")),
 		Handler: a.AmountHandler(),
 	}
 
-	if err := server.ListenAndServe(); err != nil {
-		return fmt.Errorf("failed to start server: %w \n", err)
-	}
+	fmt.Println("Starting Server")
 
-	return nil
+	ch := make(chan error, 1)
+
+	go func() {
+		if err := server.ListenAndServe(); err != nil {
+			ch <- fmt.Errorf("failed to start server: %w \n", err)
+		}
+		close(ch)
+	}()
+
+	select {
+	case err := <-ch:
+		return err
+	case <-ctx.Done():
+		fmt.Println("Logging Off")
+		shutdownCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		return server.Shutdown(shutdownCtx)
+	}
 }

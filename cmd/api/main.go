@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"os"
+	"os/signal"
 	"restaurant-management/internal/config"
 )
 
@@ -15,8 +17,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+
 	app := NewApp(viperConfig, log, validate, db)
-	if err := app.Start(); err != nil {
+	if err := app.Start(ctx); err != nil {
 		log.Error(
 			"application stopped",
 			"error", err,
