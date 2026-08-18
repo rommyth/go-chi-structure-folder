@@ -4,6 +4,7 @@ import (
 	"net/http"
 	authMW "restaurant-management/internal/middleware"
 	"restaurant-management/internal/modules/health"
+	"restaurant-management/internal/modules/user"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -13,6 +14,7 @@ import (
 type Routes struct {
 	jwt           *jwtauth.JWTAuth
 	healthHandler *health.Handler
+	userHandler   *user.Handler
 }
 
 func (r *Routes) LoadRoutes() *chi.Mux {
@@ -21,8 +23,6 @@ func (r *Routes) LoadRoutes() *chi.Mux {
 	route.Use(middleware.RequestID)
 	route.Use(middleware.Logger)
 	route.Use(middleware.Recoverer)
-
-	route.Get("/health", r.healthHandler.CheckHealth)
 
 	// Main Route
 	route.Route("/api", func(route chi.Router) {
@@ -34,6 +34,8 @@ func (r *Routes) LoadRoutes() *chi.Mux {
 }
 
 func (r *Routes) SetupGuestRoute(route chi.Router) {
+	route.Get("/health", r.healthHandler.CheckHealth)
+
 	route.Get("/guest", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Guest Route"))
 	})
@@ -46,4 +48,6 @@ func (r *Routes) SetupAuthRoute(route chi.Router) {
 	route.Get("/protected", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Protected Route"))
 	})
+
+	user.RegisterRoutes(route, r.userHandler)
 }

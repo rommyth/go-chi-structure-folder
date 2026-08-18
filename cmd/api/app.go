@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"restaurant-management/internal/modules/health"
+	"restaurant-management/internal/modules/user"
 	"time"
 
 	"github.com/go-chi/jwtauth/v5"
@@ -38,16 +39,26 @@ func NewApp(
 	}
 }
 
+// Get All Handler Here
 func (a *App) AmountHandler() http.Handler {
-	healthHandler := health.NewHandler()
+	// Initialize Repository
+	userRepository := user.NewRepository(a.db)
 
+	// Initilaize Service
+	userService := user.NewService(userRepository)
+
+	// Initilaize Handler
+	healthHandler := health.NewHandler()
+	userHandler := user.NewHandler(userService)
+
+	// Add to root config initialize routes.go
 	routesConfig := Routes{
 		jwt:           a.jwt,
 		healthHandler: healthHandler,
+		userHandler:   userHandler,
 	}
 
 	return routesConfig.LoadRoutes()
-
 }
 
 func (a *App) Start(ctx context.Context) error {
