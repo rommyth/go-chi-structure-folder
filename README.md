@@ -37,6 +37,7 @@ An example Restaurant Management API that demonstrates a modular folder structur
 ├── pkg/
 │   └── response/                # Shared JSON success and error response helpers
 ├── config.yml                   # Server, database, and JWT configuration
+├── Makefile                     # Terminal short way command
 └── go.mod
 ```
 
