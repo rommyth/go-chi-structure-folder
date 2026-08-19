@@ -1,3 +1,5 @@
+# to use write in terminal "make [options]"
+
 run:
 	go run ./cmd/api
 migrate-create:
