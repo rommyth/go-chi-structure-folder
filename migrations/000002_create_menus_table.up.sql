@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS menus(
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    start_date TIMESTAMPTZ NULL,
+    end_date TIMESTAMPTZ NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_menus_id ON menus(id);
