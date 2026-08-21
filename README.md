@@ -1,6 +1,6 @@
 # Go Chi Structure Folder
 
-An example Restaurant Management API that demonstrates a modular folder structure using [Chi](https://github.com/go-chi/chi). The `user` module is the reference implementation for adding a feature to the project.
+An example Restaurant Management API that demonstrates a modular folder structure using [Chi](https://github.com/go-chi/chi). The currently implemented feature is food creation through the `food` module's `CreateFood` handler. Other modules and endpoints remain examples or placeholders unless noted below.
 
 ## Framework and libraries
 
@@ -25,6 +25,13 @@ An example Restaurant Management API that demonstrates a modular folder structur
 │   ├── middleware/              # Reusable HTTP middleware (JWT verification)
 │   └── modules/                 # Feature modules
 │       ├── auth/                # Authentication DTOs and claims
+│       ├── food/                # Food module; CreateFood is implemented
+│       │   ├── dto.go           # CreateFood request DTO
+│       │   ├── model.go         # Food domain/database model
+│       │   ├── repository.go    # Food database access
+│       │   ├── service.go       # Menu check and food creation logic
+│       │   ├── handler.go       # HTTP handlers
+│       │   └── routes.go        # /foods routes
 │       ├── health/              # Health-check handler
 │       └── user/                # Example feature module
 │           ├── dto.go           # Request/response data-transfer objects
@@ -58,15 +65,96 @@ HTTP request
 
 At startup, `cmd/api/main.go` loads configuration, initializes the logger, validator, PostgreSQL connection pool, and JWT signer. `cmd/api/app.go` creates each module's repository, service, and handler, then passes the handlers to the root router.
 
-## The `user` module example
+## The `food` module: CreateFood
 
-The `internal/modules/user` package shows the intended dependency direction:
+The active endpoint is `POST /api/foods/`. It is registered in the JWT-protected route group, so every request must include a valid bearer token:
+
+```http
+Authorization: Bearer <token-jwt>
+Content-Type: application/json
+```
+
+Before creating food, ensure that `menu_id` already exists in the `menus` table. The service checks the menu through `menu.Repository`, and the `foods.menu_id` database foreign key provides an additional safeguard.
+
+### Request
+
+```json
+{
+  "menu_id": 1,
+  "name": "Nasi Goreng",
+  "price": 25000,
+  "image": "https://example.com/images/nasi-goreng.jpg"
+}
+```
+
+| Field | Type | Required | Rule |
+| --- | --- | --- | --- |
+| `menu_id` | integer | Yes | Existing menu ID |
+| `name` | string | Yes | 2 to 100 characters |
+| `price` | number | Yes | Application validation accepts `0` or greater; database requires a value greater than `0` |
+| `image` | string or `null` | No | Optional image URL/path |
+
+Example using `curl`:
+
+```bash
+curl -X POST http://localhost:3000/api/foods/ \
+  -H "Authorization: Bearer <token-jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"menu_id":1,"name":"Nasi Goreng","price":25000,"image":"https://example.com/images/nasi-goreng.jpg"}'
+```
+
+On success, the API returns `201 Created`:
+
+```json
+{
+  "status": true,
+  "message": "success create food",
+  "data": {
+    "id": 1,
+    "name": "Nasi Goreng",
+    "price": 25000,
+    "image": "https://example.com/images/nasi-goreng.jpg",
+    "created_at": "2026-08-21T00:00:00Z",
+    "updated_at": "2026-08-21T00:00:00Z",
+    "menu_id": 1
+  }
+}
+```
+
+Malformed JSON or a failed request validation returns `400 Bad Request`. Errors while checking the menu or persisting the food currently return `500 Internal Server Error`.
+
+### CreateFood request flow
+
+```text
+Client
+  │ POST /api/foods/ + Bearer JWT
+  ▼
+cmd/api/routes.go
+  │ Global middleware: RequestID, Logger, Recoverer
+  │ JWT Verify and Authenticator middleware
+  ▼
+internal/modules/food/routes.go → Handler.CreateFood
+  │ Decode JSON and validate CreateFoodRequest
+  ▼
+food.Service.Create
+  │ Verify menu_id with menu.Repository.GetByID
+  │ Build Food model
+  ▼
+food.Repository.Create
+  │ INSERT INTO foods (...) RETURNING ...
+  ▼
+PostgreSQL → pkg/response.Success → 201 JSON response → Client
+```
+
+At startup, `cmd/api/app.go` wires the dependencies in this order: `food.NewRepository` receives the PostgreSQL pool, `food.NewService` receives the food and menu repositories, and `food.NewHandler` receives the service, logger, and validator.
+
+### Module dependency pattern
 
 ```text
 routes -> handler -> service -> repository -> database
 ```
 
-`NewRepository` receives the shared `pgxpool.Pool`; `NewService` receives the repository interface; and `NewHandler` receives the service. `user.RegisterRoutes` attaches user endpoints to the router supplied by the application. This separation keeps HTTP concerns, business rules, and data access independent.
+This separation keeps HTTP concerns, business rules, and data access independent.
 
 To add another module, follow the same pattern:
 
@@ -80,10 +168,18 @@ To add another module, follow the same pattern:
 
 ## Running the project
 
-1. Install Go and run a PostgreSQL instance.
+1. Install Go, run a PostgreSQL instance, and install the `migrate` CLI when using the provided migration targets.
 2. Update the `database` and `jwt` values in `config.yml` for your environment.
 3. Create the configured database (by default, `restaurant_management`).
-4. From the repository root, start the API:
+4. Apply the migrations, including `foods` and its dependency tables:
+
+   ```bash
+   make migrate-up
+   ```
+
+   The current `Makefile` migration command uses local PostgreSQL credentials `postgres:postgres`; update it when your database configuration differs.
+
+5. From the repository root, start the API:
 
    ```bash
    go run ./cmd/api
@@ -99,6 +195,11 @@ The server listens on `http://localhost:3000` by default.
 | `GET` | `/api/guest` | Guest | Guest-route example |
 | `GET` | `/api/protected` | JWT | Protected-route example |
 | `GET` | `/api/users/test` | JWT | User module example; returns a JSON response |
+| `POST` | `/api/foods/` | JWT | Creates a food record; implemented |
+| `GET` | `/api/foods/` | JWT | Registered, handler is still a placeholder |
+| `GET` | `/api/foods/{id}` | JWT | Registered, handler is still a placeholder |
+| `PATCH` | `/api/foods/{id}` | JWT | Registered, handler is still a placeholder |
+| `/api/menus/*` | JWT | Registered, menu handlers are still placeholders |
 
 All protected routes require a valid JWT in the `Authorization` header:
 

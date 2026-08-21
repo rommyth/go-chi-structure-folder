@@ -55,4 +55,5 @@ func (r *Routes) SetupAuthRoute(route chi.Router) {
 
 	user.RegisterRoutes(route, r.userHandler)
 	food.RegisterRoutes(route, r.foodHandler)
+	menu.RegisterRoutes(route, r.menuHandler)
 }
