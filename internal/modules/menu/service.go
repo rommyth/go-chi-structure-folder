@@ -1,6 +1,10 @@
 package menu
 
-type Repository interface{}
+import "context"
+
+type Repository interface {
+	GetByID(ctx context.Context, id int) (Menu, error)
+}
 
 type Service struct {
 	repo Repository

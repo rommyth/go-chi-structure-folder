@@ -7,7 +7,6 @@ func RegisterRoutes(r chi.Router, h *Handler) {
 		r.Get("/", h.GetFoods)
 		r.Get("/{id}", h.GetFoodByID)
 		r.Post("/", h.CreateFood)
-		r.Put("/{id}", h.UpdateFood)
-
+		r.Patch("/{id}", h.UpdateFood)
 	})
 }

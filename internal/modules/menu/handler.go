@@ -1,13 +1,24 @@
 package menu
 
-import "net/http"
+import (
+	"log/slog"
+	"net/http"
+
+	"github.com/go-playground/validator/v10"
+)
 
 type Handler struct {
-	service *Service
+	service  *Service
+	log      *slog.Logger
+	validate *validator.Validate
 }
 
-func NewHandler(service *Service) *Handler {
-	return &Handler{service: service}
+func NewHandler(service *Service, log *slog.Logger, validate *validator.Validate) *Handler {
+	return &Handler{
+		service:  service,
+		log:      log,
+		validate: validate,
+	}
 }
 
 func (h *Handler) GetMenus(w http.ResponseWriter, r *http.Request) {

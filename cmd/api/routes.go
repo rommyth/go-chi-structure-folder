@@ -3,7 +3,9 @@ package main
 import (
 	"net/http"
 	authMW "restaurant-management/internal/middleware"
+	"restaurant-management/internal/modules/food"
 	"restaurant-management/internal/modules/health"
+	"restaurant-management/internal/modules/menu"
 	"restaurant-management/internal/modules/user"
 
 	"github.com/go-chi/chi/v5"
@@ -15,6 +17,8 @@ type Routes struct {
 	jwt           *jwtauth.JWTAuth
 	healthHandler *health.Handler
 	userHandler   *user.Handler
+	foodHandler   *food.Handler
+	menuHandler   *menu.Handler
 }
 
 func (r *Routes) LoadRoutes() *chi.Mux {
@@ -50,4 +54,5 @@ func (r *Routes) SetupAuthRoute(route chi.Router) {
 	})
 
 	user.RegisterRoutes(route, r.userHandler)
+	food.RegisterRoutes(route, r.foodHandler)
 }
