@@ -23,6 +23,10 @@ func NewService(repo Repository, menuRepo menu.Repository) *Service {
 	return &Service{repo: repo, menuRepo: menuRepo}
 }
 
+func (s *Service) GetByID(ctx context.Context, id int) (Food, error) {
+	return s.repo.GetByID(ctx, id)
+}
+
 func (s *Service) Create(ctx context.Context, req CreateFoodRequest) (Food, error) {
 	_, err := s.menuRepo.GetByID(ctx, int(req.MenuID))
 	if err != nil {
