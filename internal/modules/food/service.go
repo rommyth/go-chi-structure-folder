@@ -23,6 +23,23 @@ func NewService(repo Repository, menuRepo menu.Repository) *Service {
 	return &Service{repo: repo, menuRepo: menuRepo}
 }
 
+func (s *Service) GetList(ctx context.Context, page, limit int, search string) ([]Food, int, error) {
+	if page < 1 {
+		page = 1
+	}
+
+	if limit < 0 || limit > 100 {
+		limit = 10
+	}
+
+	foods, total, err := s.repo.List(ctx, page, limit, search)
+	if err != nil {
+		return []Food{}, 0, fmt.Errorf("failed get list foods : %w", err)
+	}
+
+	return foods, total, nil
+}
+
 func (s *Service) GetByID(ctx context.Context, id int) (Food, error) {
 	return s.repo.GetByID(ctx, id)
 }
@@ -49,4 +66,26 @@ func (s *Service) Create(ctx context.Context, req CreateFoodRequest) (Food, erro
 	}
 
 	return res, nil
+}
+
+func (s *Service) Update(ctx context.Context, id int, f UpdateFoodRequest) (Food, error) {
+	food, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return Food{}, err
+	}
+
+	if _, err = s.menuRepo.GetByID(ctx, int(f.MenuID)); err != nil {
+		return Food{}, err
+	}
+
+	food.Name = f.Name
+	food.Image = f.Image
+	food.MenuID = f.MenuID
+	food.Price = f.Price
+
+	if _, err := s.repo.Update(ctx, id, food); err != nil {
+		return Food{}, err
+	}
+
+	return food, nil
 }
