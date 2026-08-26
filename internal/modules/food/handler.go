@@ -33,7 +33,7 @@ func NewHandler(service *Service, log *slog.Logger, validate *validator.Validate
 // @Param		page query int false "Page Number" default(1)
 // @Param		limit query int false "Limit NUmber" default(10)
 // @Param		search query string false "Search"
-// @Success		200 (object) response.Success
+// @Success		200 {object} response.Response
 // @Router		/foods [get]
 func (h *Handler) GetFoods(w http.ResponseWriter, r *http.Request) {
 	page := 1
@@ -70,7 +70,7 @@ func (h *Handler) GetFoods(w http.ResponseWriter, r *http.Request) {
 // @Produce 	json
 // @Tags 		Foods
 // @Param		id path int true "food_id"
-// @Success		200 (object) response.Success
+// @Success		200 {object} response.Response
 // @Router		/foods/{id} [get]
 func (h *Handler) GetFoodByID(w http.ResponseWriter, r *http.Request) {
 	foodId, err := strconv.Atoi(chi.URLParam(r, "id"))
@@ -98,7 +98,7 @@ func (h *Handler) GetFoodByID(w http.ResponseWriter, r *http.Request) {
 // @Produce 	json
 // @Tags 		Foods
 // @Param		request body CreateFoodRequest true "food data"
-// @Success		200 (object) response.Success
+// @Success		200 {object} response.Response
 // @Router		/foods [post]
 func (h *Handler) CreateFood(w http.ResponseWriter, r *http.Request) {
 	var req CreateFoodRequest
@@ -126,6 +126,46 @@ func (h *Handler) CreateFood(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// UpdateFood godoc
+// @Summary 	Update Food by ID
+// @Produce 	json
+// @Tags 		Foods
+// @Param		request body UpdateFoodRequest true "food data"
+// @Success		200 {object} response.Response
+// @Router		/foods/{id} [patch]
 func (h *Handler) UpdateFood(w http.ResponseWriter, r *http.Request) {
-	// TODO
+	foodId, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "invalid id param", err)
+		return
+	}
+
+	var req UpdateFoodRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.log.WarnContext(r.Context(), "invalid parsing request", "error", err)
+		response.Error(w, http.StatusBadRequest, "invalid parsing body", err)
+		return
+	}
+
+	if err := h.validate.Struct(req); err != nil {
+		h.log.WarnContext(r.Context(), "invalid validation", "error", err)
+		response.Error(w, http.StatusBadRequest, "invalid validation", err)
+		return
+	}
+
+	result, err := h.service.Update(r.Context(), foodId, req)
+	if err != nil {
+		if errors.Is(err, ErrFoodNotFound) {
+			h.log.WarnContext(r.Context(), "food id not found", "error", err)
+			response.Error(w, http.StatusNotFound, "food not found", err)
+			return
+		}
+
+		h.log.WarnContext(r.Context(), "failed to updat food", "error", err)
+		response.Error(w, http.StatusInternalServerError, "failed to update food", err)
+		return
+	}
+
+	h.log.InfoContext(r.Context(), "food updated", "error", err)
+	response.Success(w, http.StatusOK, "success update food", result)
 }

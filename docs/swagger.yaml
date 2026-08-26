@@ -1,0 +1,148 @@
+basePath: /api
+definitions:
+  food.CreateFoodRequest:
+    properties:
+      image:
+        type: string
+      menu_id:
+        type: integer
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      price:
+        minimum: 0
+        type: number
+    required:
+    - name
+    - price
+    type: object
+  food.UpdateFoodRequest:
+    properties:
+      image:
+        type: string
+      menu_id:
+        type: integer
+      name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      price:
+        minimum: 0
+        type: number
+    required:
+    - name
+    - price
+    type: object
+  response.Meta:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  response.Response:
+    properties:
+      data: {}
+      error:
+        type: string
+      message:
+        type: string
+      meta:
+        $ref: '#/definitions/response.Meta'
+      status:
+        type: boolean
+    type: object
+host: localhost:3000
+info:
+  contact: {}
+  description: restaurant description
+  title: Restaurant Management API
+  version: "1.0"
+paths:
+  /foods:
+    get:
+      parameters:
+      - default: 1
+        description: Page Number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Limit NUmber
+        in: query
+        name: limit
+        type: integer
+      - description: Search
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get all foods
+      tags:
+      - Foods
+    post:
+      parameters:
+      - description: food data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/food.CreateFoodRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Create Food
+      tags:
+      - Foods
+  /foods/{id}:
+    get:
+      parameters:
+      - description: food_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get single food by id
+      tags:
+      - Foods
+    patch:
+      parameters:
+      - description: food data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/food.UpdateFoodRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Update Food by ID
+      tags:
+      - Foods
+swagger: "2.0"

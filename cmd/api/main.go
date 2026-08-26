@@ -7,6 +7,11 @@ import (
 	"restaurant-management/internal/config"
 )
 
+// @title		Restaurant Management API
+// @version		1.0
+// @description	restaurant description
+// @host		localhost:3000
+// @BasePath	/api
 func main() {
 	viperConfig := config.NewViper()
 	log := config.NewLogger()
