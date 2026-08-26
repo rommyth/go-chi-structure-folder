@@ -177,7 +177,41 @@ func (r *repository) Create(ctx context.Context, user User) (User, error) {
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
+	if err != nil {
+		return User{}, fmt.Errorf("failed to create user: %w", err)
+	}
 
+	return user, nil
 }
 
-func (r *repository) Update(ctx context.Context, user User) (User, error) {}
+func (r *repository) Update(ctx context.Context, id int, user User) (User, error) {
+	query := `
+		UPDATE users
+		SET first_name=$1, last_name=$2, email=$3, phone=$4, avatar=$5
+		WHERE id = $6
+		RETURNING id, first_name, last_name, email, phone, avatar, created_at, updated_at
+	`
+
+	err := r.db.QueryRow(ctx, query,
+		user.FirstName,
+		user.LastName,
+		user.Email,
+		user.Phone,
+		user.Avatar,
+		id,
+	).Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.LastName,
+		&user.Email,
+		&user.Phone,
+		&user.Avatar,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		return User{}, fmt.Errorf("failed to update user: %w", err)
+	}
+
+	return user, nil
+}

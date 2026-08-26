@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	authMW "restaurant-management/internal/middleware"
 	"restaurant-management/internal/modules/food"
@@ -8,6 +9,7 @@ import (
 	"restaurant-management/internal/modules/menu"
 	"restaurant-management/internal/modules/user"
 
+	"github.com/MarceloPetrucio/go-scalar-api-reference"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
@@ -27,6 +29,19 @@ func (r *Routes) LoadRoutes() *chi.Mux {
 	route.Use(middleware.RequestID)
 	route.Use(middleware.Logger)
 	route.Use(middleware.Recoverer)
+
+	route.Get("/docs", func(w http.ResponseWriter, r *http.Request) {
+		htmlContent, err := scalar.ApiReferenceHTML(&scalar.Options{
+			SpecURL:  "./docs/swagger.json",
+			DarkMode: true,
+		})
+
+		if err != nil {
+			fmt.Printf("%v", err)
+		}
+
+		fmt.Fprintln(w, htmlContent)
+	})
 
 	// Main Route
 	route.Route("/api", func(route chi.Router) {

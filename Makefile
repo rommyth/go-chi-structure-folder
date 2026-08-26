@@ -1,5 +1,6 @@
 # to use write in terminal "make [options]"
-
+swag:
+	swag init -g ./cmd/api/main.go
 run:
 	go run ./cmd/api
 migrate-create:

@@ -57,6 +57,27 @@ definitions:
       status:
         type: boolean
     type: object
+  user.UpdateUserRequest:
+    properties:
+      avatar:
+        type: string
+      email:
+        minLength: 3
+        type: string
+      first_name:
+        minLength: 3
+        type: string
+      last_name:
+        minLength: 3
+        type: string
+      phone:
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - phone
+    type: object
 host: localhost:3000
 info:
   contact: {}
@@ -145,4 +166,72 @@ paths:
       summary: Update Food by ID
       tags:
       - Foods
+  /users:
+    get:
+      parameters:
+      - description: page number
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: limit number
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: search user by name
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: List User
+      tags:
+      - Users
+  /users/{id}:
+    get:
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get User By ID
+      tags:
+      - Users
+    patch:
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: user body update
+        in: body
+        name: requrest
+        required: true
+        schema:
+          $ref: '#/definitions/user.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Update User
+      tags:
+      - Users
 swagger: "2.0"
