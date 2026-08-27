@@ -34,6 +34,7 @@ func (r *Routes) LoadRoutes() *chi.Mux {
 	route.Use(middleware.Logger)
 	route.Use(middleware.Recoverer)
 
+	// Scalar Docs
 	route.Route("/docs", func(route chi.Router) {
 		route.Get("/swagger.json", func(w http.ResponseWriter, r *http.Request) {
 			http.ServeFile(w, r, "./docs/swagger.json")
@@ -55,7 +56,7 @@ func (r *Routes) LoadRoutes() *chi.Mux {
 	// Main Route
 	route.Route("/api", func(route chi.Router) {
 		route.Group(r.SetupGuestRoute)
-		route.Group(r.SetupAuthRoute)
+		route.Group(r.SetupProtectedRoute)
 	})
 
 	return route
@@ -64,20 +65,12 @@ func (r *Routes) LoadRoutes() *chi.Mux {
 func (r *Routes) SetupGuestRoute(route chi.Router) {
 	route.Get("/health", r.healthHandler.CheckHealth)
 
-	route.Get("/guest", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Guest Route"))
-	})
-
 	auth.RegisterRoutes(route, r.authHandler)
 }
 
-func (r *Routes) SetupAuthRoute(route chi.Router) {
+func (r *Routes) SetupProtectedRoute(route chi.Router) {
 	route.Use(authMW.Verify(r.jwt))
 	route.Use(authMW.Authenticator)
-
-	route.Get("/protected", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Protected Route"))
-	})
 
 	user.RegisterRoutes(route, r.userHandler)
 	food.RegisterRoutes(route, r.foodHandler)
