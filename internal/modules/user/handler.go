@@ -30,8 +30,8 @@ func NewHandler(service *Service, log *slog.Logger, validate *validator.Validate
 // @Summary 	List User
 // @Produce		json
 // @Tags		Users
-// @Param		page query int true "page number"
-// @Param		limit query int true "limit number"
+// @Param		page query int false "page number" default(1)
+// @Param		limit query int false "limit number" default(10)
 // @Param		search query string false "search user by name"
 // @Success		200 {object} response.Response
 // @Router		/users [get]

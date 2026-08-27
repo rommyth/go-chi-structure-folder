@@ -1,5 +1,49 @@
 basePath: /api
 definitions:
+  auth.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  auth.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  auth.RegisterRequest:
+    properties:
+      avatar:
+        type: string
+      email:
+        type: string
+      first_name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      last_name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      password:
+        minLength: 6
+        type: string
+      phone:
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - password
+    - phone
+    type: object
   food.CreateFoodRequest:
     properties:
       image:
@@ -85,6 +129,63 @@ info:
   title: Restaurant Management API
   version: "1.0"
 paths:
+  /auth/login:
+    post:
+      parameters:
+      - description: login body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Login
+      tags:
+      - Auth
+  /auth/refresh-token:
+    post:
+      parameters:
+      - description: refrehtoken body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Refresh Token
+      tags:
+      - Auth
+  /auth/signup:
+    post:
+      parameters:
+      - description: signup body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Sign Up
+      tags:
+      - Auth
   /foods:
     get:
       parameters:
@@ -169,15 +270,15 @@ paths:
   /users:
     get:
       parameters:
-      - description: page number
+      - default: 1
+        description: page number
         in: query
         name: page
-        required: true
         type: integer
-      - description: limit number
+      - default: 10
+        description: limit number
         in: query
         name: limit
-        required: true
         type: integer
       - description: search user by name
         in: query

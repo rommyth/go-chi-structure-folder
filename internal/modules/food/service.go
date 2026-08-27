@@ -28,7 +28,7 @@ func (s *Service) GetList(ctx context.Context, page, limit int, search string) (
 		page = 1
 	}
 
-	if limit < 0 || limit > 100 {
+	if limit < 1 || limit > 100 {
 		limit = 10
 	}
 

@@ -116,6 +116,10 @@ func (r *repository) List(ctx context.Context, page, limit int, search string) (
 		foods = append(foods, food)
 	}
 
+	if err := rows.Err(); err != nil {
+		return []Food{}, 0, fmt.Errorf("failed to iterate foods: %w", err)
+	}
+
 	return foods, total, nil
 }
 

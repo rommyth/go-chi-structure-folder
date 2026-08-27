@@ -127,7 +127,7 @@ func (r *repository) GetByID(ctx context.Context, id int) (User, error) {
 
 func (r *repository) GetByEmail(ctx context.Context, email string) (User, error) {
 	query := `
-		SELECT id, first_name, last_name, email, avatar, phone, created_at, updated_at
+		SELECT id, first_name, last_name, email, password, avatar, phone, created_at, updated_at
 		FROM users
 		WHERE email = $1
 	`
@@ -138,6 +138,7 @@ func (r *repository) GetByEmail(ctx context.Context, email string) (User, error)
 		&user.FirstName,
 		&user.LastName,
 		&user.Email,
+		&user.Password,
 		&user.Avatar,
 		&user.Phone,
 		&user.CreatedAt,
@@ -173,6 +174,7 @@ func (r *repository) Create(ctx context.Context, user User) (User, error) {
 		&user.FirstName,
 		&user.LastName,
 		&user.Email,
+		&user.Phone,
 		&user.Avatar,
 		&user.CreatedAt,
 		&user.UpdatedAt,

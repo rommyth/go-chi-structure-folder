@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"restaurant-management/internal/modules/auth"
 	"restaurant-management/internal/modules/food"
 	"restaurant-management/internal/modules/health"
 	"restaurant-management/internal/modules/menu"
@@ -49,12 +50,14 @@ func (a *App) AmountHandler() http.Handler {
 	menuRepository := menu.NewRepository(a.db)
 
 	// Initilaize Service
+	authService := auth.NewService(userRepository, a.jwt)
 	userService := user.NewService(userRepository)
 	foodService := food.NewService(foodRepository, menuRepository)
 	menuService := menu.NewService(menuRepository)
 
 	// Initilaize Handler
 	healthHandler := health.NewHandler()
+	authHandler := auth.NewHandler(authService, a.log, a.validate)
 	userHandler := user.NewHandler(userService, a.log, a.validate)
 	foodHandler := food.NewHandler(foodService, a.log, a.validate)
 	menuHandler := menu.NewHandler(menuService, a.log, a.validate)
@@ -63,6 +66,7 @@ func (a *App) AmountHandler() http.Handler {
 	routesConfig := Routes{
 		jwt:           a.jwt,
 		healthHandler: healthHandler,
+		authHandler:   authHandler,
 		userHandler:   userHandler,
 		foodHandler:   foodHandler,
 		menuHandler:   menuHandler,

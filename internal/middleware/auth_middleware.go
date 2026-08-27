@@ -3,7 +3,6 @@ package middleware
 import (
 	"errors"
 	"net/http"
-	"restaurant-management/internal/modules/auth"
 	"restaurant-management/pkg/response"
 
 	"github.com/go-chi/jwtauth/v5"
@@ -33,32 +32,4 @@ func Authenticator(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
-}
-
-func GetClaims(r *http.Request) (*auth.CustomClaims, error) {
-	_, claims, err := jwtauth.FromContext(r.Context())
-	if err != nil {
-		return nil, err
-	}
-
-	userID, ok := claims["user_id"].(string)
-	if !ok {
-		return nil, errors.New("invalid user_id claim")
-	}
-
-	email, ok := claims["email"].(string)
-	if !ok {
-		return nil, errors.New("invalid email claim")
-	}
-
-	role, ok := claims["role"].(string)
-	if !ok {
-		return nil, errors.New("invalid role claim")
-	}
-
-	return &auth.CustomClaims{
-		UserID: userID,
-		Role:   role,
-		Email:  email,
-	}, nil
 }
